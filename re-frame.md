@@ -8,9 +8,9 @@ re-frame is a loop of 6 steps. The first three steps are responsible for applica
 
 ### 1. Event Dispatch ###
 
-An event is sent when something happens - click or websocket:
+An event is sent when something happens - click a button or receive an event from a websocket:
 
-A re-com/button component would dispatch an on-click event using an anoymouse function literal like this:
+A re-com/button component would dispatch an on-click event using an anonymous function literal like this:
 
 ```clojure
 (defn my-delete-button
