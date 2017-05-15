@@ -118,6 +118,11 @@ A typical development process would look like:
 
 ## Some important additions ##
 
+### Our re-frame Standard ###
+
+* For maintainability and flexibility, register all events using `reg-event-fx`
+* All dom markup within the render function should be invoked by vector notation (not paren notation).
+
 ### Effects ###
 
 When your application needs to create a side-effect *(change the world in some way - call an API or write to local storage, etc)* then you might be tempted to put it in a handler function. Don't.
@@ -155,11 +160,56 @@ Then we register it, typically at startup
 And then we can use it in an event handler
 
 ```clojure
-(defn my-handler
-  [fx event]
-  (let [id (second event)
-        db (:db fx)]
-    {:db (dissoc-in db [:items id]
-	 :my-effect {:a "123"}}
-  
+(defn my-handler-alt
+  [{:keys [db]} [_ id]]
+  {:db (dissoc-in db [:items id])
+   :my-effect {:a "123"}})
 ```
+
+### Invoking Render and UI Change ###
+
+React is very efficient at it's rendering and only applies updates to the sections of the DOM that have changed.
+A re-evaluation will occur whenever a ratom/reaction value has changed, and it has been de-referenced within a render function.
+
+#### Form-1 Example ####
+
+With a Form-1 notation, the entire form represents the renderable function. Any change to the arguments
+(`args`) will cause a re-evaluation and UI update.
+
+```clojure
+(defn my-form1-renderable [& args]
+  [:p (first args)]) ; This paragraph will change whenever args changes
+
+(defn my-form1-renderable [sub]
+  [:p @sub]) ; This paragraph will change whenever the subscription changes
+```
+
+#### Form-2 Example ####
+
+With the higher order Form-2 notation, only the returned function is considered in the render cycle. Any changes
+to the outer arguments (`args`) will not cause a UI update. 
+
+```clojure
+(defn my-form2-renderable [& args]
+  (let [v (first args)]
+    (fn []
+      [:p v]))) ; This paragraph will never change
+
+(defn my-form2-renderable [& args]
+  (fn []
+    [:p (first args]))) ; This paragraph will never change
+
+(defn my-form2-renderable [sub]
+  (let [v @sub]
+    (fn []
+      [:p v]))) ; This paragraph will never change as the subscription is de-referenced outside the render scope
+
+(defn my-form2-renderable [sub]
+  (fn []
+    [:p @sub))) ; This paragraph will change whenever the subscription changes
+
+(defn my-form2-renderable []
+  (fn [sub]
+    [:p v])) ; This paragraph will change whenever the subscription changes 
+```
+
