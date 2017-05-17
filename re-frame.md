@@ -208,3 +208,41 @@ to the outer arguments (`args`) will not cause a UI update.
     [:p @sub])) ; This paragraph will change whenever the subscription changes 
 ```
 
+## Testing
+
+### Recommendations for Test Structuring
+
+* Prefix the governing test name with the namespace it's testing. For example, the `date-picker` namespace should have 
+  `(deftest date-picker-test ... )` as it's test entry point.
+* If a namespace has several sub components, seperate each sub component into a seperate test entry point. 
+  If there are any failing tests, it allows the developer to quickly isolate the corresponding test namespace
+  and the failing test. For example, the `io.jesi.controls.select` namespace:
+
+```clojure
+(ns io.jesi.controls.select)
+
+(defn select [] ...)
+(defn multi-select [] ...)
+(defn all-select [] ...)
+```
+
+The test file would look like:
+
+```clojure
+(ns io.jesi.controls.select-test)
+
+(deftest select-test
+  (testing "The Select Control: "
+    (testing "An individual test case"
+      ... )))
+  
+(deftest select-test-multi-select
+  (testing "The Multi-Select Control: "
+    (testing "An individual test case"
+      ... )))
+      
+(deftest select-test-all-select
+  (testing "The All-Select Control: "
+    (testing "An individual test case"
+      ... )))
+```
